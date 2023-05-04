@@ -1,4 +1,8 @@
 package com.driver;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static java.lang.Math.max;
 
 public class CurrentAccount extends BankAccount{
     String tradeLicenseId; //consists of Uppercase English characters only
@@ -27,69 +31,59 @@ public class CurrentAccount extends BankAccount{
         // If the license Id is valid, do nothing
         // If the characters of the license Id can be rearranged to create any valid license Id
         // If it is not possible, throw "Valid License can not be generated" Exception
-    if(!isValid(tradeLicenseId)){
-        String  rearrange=rearangeString(tradeLicenseId);
-        if (rearrange==""){
+    if(!tradeLicenseId.equals(tradeLicenseId.toUpperCase())) {
             throw new Exception("Valid License can not be generated");
+        }
+        int size = tradeLicenseId.length();
+        HashMap<Character,Integer> map = new HashMap<>();
 
-        }else
-            this.tradeLicenseId=rearrange;
-    }
-    }
-    public String rearangeString(String s){
-        int n=s.length();
-        char[] count=new char[26];
-        for(char ch:s.toCharArray()){
-            count[(int)ch-(int)'A']++;
-        }
-        char ans=getCharCount(count);
-        int max_count=count[(int)ans-(int)'A'];
-        if(n%2==0){
-            if(max_count>(n/2)+1) return "";
-        }else{
-            if(max_count>(n/2)+2) return "";
-        }
-        char[] res=new char[n];
-        int k;
-        for(k=0;k<n;k=k+2){
-            if(count[max_count]>0){
-                res[k]=ans;
-                count[ans]--;
 
-            }else break;
+        getFrequencyMap(size, map);
+        //odd even
+        if(Collections.max(map.values()) > size/2) {
+            throw new Exception("Valid License can not be generated");
         }
-        for(int i=0;i<26;i++){
-            char c=(char)('A'+i);
-            while (count[i]>0){
-                if(k>=26){
-                    k=1;
-                }
-                res[k]=c;
-                k=k+2;
-                count[i]--;
+
+        while (!isValidTradeId()) {
+            List<Character> list = tradeLicenseId.chars()
+                    .mapToObj(e -> (char)e)
+                    .collect(Collectors.toList());
+            Collections.shuffle(list);
+            StringBuilder sb = new StringBuilder();
+
+            // Appends characters one by one
+            for (Character ch : list) {
+                sb.append(ch);
+            }
+
+            String tradeId = sb.toString();
+            this.tradeLicenseId = tradeId;
+        }
+
+        return;
+    }
+
+    private void getFrequencyMap(int size, HashMap<Character, Integer> map) {
+        for(int i = 0; i< size; i++) {
+            if(map.containsKey(tradeLicenseId.charAt(i))) {
+                int value = map.get(tradeLicenseId.charAt(i));
+                map.put(tradeLicenseId.charAt(i), value+1 );
+            } else {
+                map.put(tradeLicenseId.charAt(i), 1);
             }
         }
-        String str=String.valueOf(res);
-        return str;
     }
-    public char getCharCount(char[] count){
-        int max=0;
-        char ch=0;
-        for(int i=0;i<26;i++){
-            if(count[i]>max){
-                max=count[i];
-                ch=(char)((int)'A'+i);
+    private boolean isValidTradeId() {
+        int size = tradeLicenseId.length();
+        for(int i = 0, j = 1; i< size && j< size; i++, j++) {
+            if(((Character)tradeLicenseId.charAt(i)).equals((Character) tradeLicenseId.charAt(j))) {
+                break;
             }
-        }return ch;
-    }
-    public boolean isValid(String tradeLicenseId){
-        for (int i=0;i<tradeLicenseId.length()-1;i++){
-            if(tradeLicenseId.charAt(i)==tradeLicenseId.charAt(i+1)){
-                return false;
-            }else
+            if(j== size -1) {
                 return true;
+            }
         }
-        return true;
+        return false;
     }
 
 }
